@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -39,32 +40,26 @@ namespace ImageResizer
         public async Task ResizeImagesAsync(string sourcePath, string destPath, double scale)
         {
             var allFiles = FindImages(sourcePath);
-            var resizeTasks = new List<Task>();
 
-            foreach (var filePath in allFiles)
+            Parallel.For(0, allFiles.Count - 1, (i, s) =>
             {
-                var task = Task.Run(() =>
-                {
-                    Image imgPhoto = Image.FromFile(filePath);
-                    string imgName = Path.GetFileNameWithoutExtension(filePath);
+                var filePath = allFiles[i];
+                Image imgPhoto = Image.FromFile(filePath);
+                string imgName = Path.GetFileNameWithoutExtension(filePath);
 
-                    int sourceWidth = imgPhoto.Width;
-                    int sourceHeight = imgPhoto.Height;
+                int sourceWidth = imgPhoto.Width;
+                int sourceHeight = imgPhoto.Height;
 
-                    int destionatonWidth = (int)(sourceWidth * scale);
-                    int destionatonHeight = (int)(sourceHeight * scale);
+                int destionatonWidth = (int)(sourceWidth * scale);
+                int destionatonHeight = (int)(sourceHeight * scale);
 
-                    Bitmap processedImage = processBitmap((Bitmap)imgPhoto,
-                        sourceWidth, sourceHeight,
-                        destionatonWidth, destionatonHeight);
+                Bitmap processedImage = processBitmap((Bitmap)imgPhoto,
+                    sourceWidth, sourceHeight,
+                    destionatonWidth, destionatonHeight);
 
-                    string destFile = Path.Combine(destPath, imgName + ".jpg");
-                    processedImage.Save(destFile, ImageFormat.Jpeg);
-                });
-                resizeTasks.Add(task);
-            }
-
-            await Task.WhenAll(resizeTasks);
+                string destFile = Path.Combine(destPath, imgName + ".jpg");
+                processedImage.Save(destFile, ImageFormat.Jpeg);
+            });
         }
 
         /// <summary>

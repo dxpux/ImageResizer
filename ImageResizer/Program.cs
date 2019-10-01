@@ -24,7 +24,9 @@ namespace ImageResizer
             sw.Stop();
 
             Console.WriteLine($"花費時間: {sw.ElapsedMilliseconds} ms");
-            // 原 4217ms 現 3155ms
+            // 原 4217ms
+            // Task 3155ms
+            // Parallel 3141ms
             Console.ReadKey();
         }
     }
